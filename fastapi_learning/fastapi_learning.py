@@ -7,6 +7,7 @@ from typing import Dict
 from typing import Optional
 
 from fastapi import FastAPI
+from pydantic.main import BaseModel
 
 from fastapi_learning.types import T
 
@@ -14,15 +15,28 @@ from fastapi_learning.types import T
 app = FastAPI()
 
 
+class Item(BaseModel):
+    name: str
+    price: float
+    is_offer: Optional[bool] = None
+
+
 @cast(Callable[[T], T], app.get("/"))
 async def read_root() -> Dict[str, str]:
-    """Reads the root."""
+    """Read the root."""
 
     return {"Hello": "World"}
 
 
 @cast(Callable[[T], T], app.get("/items/{item_id}"))
 async def read_item(item_id: int, q: Optional[str] = None) -> Dict[str, Any]:
-    """Reads an item."""
+    """Read an item."""
 
     return {"item_id": item_id, "q": q}
+
+
+@cast(Callable[[T], T], app.put("/items/{item_id}"))
+async def update_item(item_id: int, item: Item) -> Dict[str, Any]:
+    """Update an item."""
+
+    return {"item_name": item.name, "item_id": item_id}
