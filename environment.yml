@@ -1,4 +1,4 @@
-name: python-project-template
+name: fastapi-learning
 
 dependencies:
   - python = 3.9.*
