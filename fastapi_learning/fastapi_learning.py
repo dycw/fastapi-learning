@@ -11,7 +11,6 @@ from pydantic.main import BaseModel
 
 from fastapi_learning.types import T
 
-
 app = FastAPI()
 
 
@@ -19,6 +18,16 @@ class Item(BaseModel):
     name: str
     price: float
     is_offer: Optional[bool] = None
+
+
+@cast(Callable[[T], T], app.get("/users/me"))
+async def read_user_me() -> Dict[str, Any]:
+    return {"user_id": "the current user"}
+
+
+@cast(Callable[[T], T], app.get("/users/{user_id}"))
+async def read_user(user_id: str) -> Dict[str, Any]:
+    return {"user_id": user_id}
 
 
 @cast(Callable[[T], T], app.get("/"))
