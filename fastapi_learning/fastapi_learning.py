@@ -5,6 +5,7 @@ from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
+from typing import List
 from typing import Optional
 
 from fastapi import FastAPI
@@ -52,11 +53,34 @@ async def read_user_not_me(user_id: str) -> Dict[str, str]:
     return {"user_id": user_id}
 
 
+FAKE_ITEMS_DB = [
+    {"item_name": "Foo"},
+    {"item_name": "Bar"},
+    {"item_name": "Baz"},
+]
+
+
+@_APP_GET("/items/")
+async def read_item(skip: int = 0, limit: int = 10) -> List[Dict[str, str]]:
+    return FAKE_ITEMS_DB[skip : skip + limit]
+
+
 @_APP_GET("/items/{item_id}")
-async def read_item(item_id: int, q: Optional[str] = None) -> Dict[str, Any]:
+async def read_item_2(
+    item_id: int,
+    q: Optional[str] = None,
+    short: bool = False,
+) -> Dict[str, Any]:
     """Read an item."""
 
-    return {"item_id": item_id, "q": q}
+    out: Dict[str, Any] = {"item_id": item_id}
+    if q is not None:
+        out["q"] = q
+    if not short:
+        out[
+            "description"
+        ] = "This is an amazing item that has a long description"
+    return out
 
 
 @_APP_PUT("/items/{item_id}")
