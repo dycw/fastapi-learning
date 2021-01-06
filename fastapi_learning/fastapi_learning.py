@@ -5,14 +5,15 @@ from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
+from typing import TypeVar
 
 from fastapi import FastAPI
 
 from fastapi_learning.models import Item
-from fastapi_learning.types import T
 
 
 APP = FastAPI()
+T = TypeVar("T")
 _APP_GET = cast(Callable[..., Callable[[T], T]], APP.get)
 _APP_POST = cast(Callable[..., Callable[[T], T]], APP.post)
 _APP_PUT = cast(Callable[..., Callable[[T], T]], APP.put)
