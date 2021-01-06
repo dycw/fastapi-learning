@@ -16,9 +16,13 @@ app = FastAPI()
 
 @cast(Callable[[T], T], app.get("/"))
 async def read_root() -> Dict[str, str]:
+    """Reads the root."""
+
     return {"Hello": "World"}
 
 
 @cast(Callable[[T], T], app.get("/items/{item_id}"))
 async def read_item(item_id: int, q: Optional[str] = None) -> Dict[str, Any]:
+    """Reads an item."""
+
     return {"item_id": item_id, "q": q}
