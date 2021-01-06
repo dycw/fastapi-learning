@@ -39,4 +39,4 @@ async def read_item(item_id: int, q: Optional[str] = None) -> Dict[str, Any]:
 async def update_item(item_id: int, item: Item) -> Dict[str, Any]:
     """Update an item."""
 
-    return {"item_name": item.name, "item_id": item_id}
+    return {"item_price": item.price, "item_id": item_id}
