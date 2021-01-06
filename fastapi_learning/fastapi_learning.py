@@ -37,13 +37,18 @@ async def read_root() -> Dict[str, str]:
     return {"Hello": "World"}
 
 
+@_APP_GET("/files/{file_path:path}")
+async def read_file(file_path: str) -> Dict[str, str]:
+    return {"file_path": file_path}
+
+
 @_APP_GET("/users/me")
-async def read_user_me() -> Dict[str, Any]:
+async def read_user_me() -> Dict[str, str]:
     return {"user_id": "the current user"}
 
 
 @_APP_GET("/users/{user_id}")
-async def read_user(user_id: str) -> Dict[str, Any]:
+async def read_user_not_me(user_id: str) -> Dict[str, str]:
     return {"user_id": user_id}
 
 
