@@ -17,6 +17,7 @@ from fastapi import Path
 from fastapi_learning.models import Image
 from fastapi_learning.models import Item
 from fastapi_learning.models import UserIn
+from fastapi_learning.models import UserInDB
 from fastapi_learning.models import UserOut
 
 APP = FastAPI()
@@ -94,9 +95,9 @@ async def models__get(model_name: ModelName) -> Dict[str, Any]:
     }
 
 
-@_APP_POST("/user/", response_model=UserIn)
-async def user__post(user: UserIn) -> UserIn:
-    return user
+@_APP_POST("/user/", response_model=UserOut)
+async def user__post(user_in: UserIn) -> UserOut:
+    return cast(UserOut, _fake_save_user(user_in))
 
 
 @_APP_GET("/users/me")
@@ -107,3 +108,14 @@ async def users__me__get() -> Dict[str, str]:
 @_APP_GET("/users/{user_id}", response_model=UserOut)
 async def users__other__get(user_id: str) -> Dict[str, str]:
     return {"user_id": user_id}
+
+
+def _fake_password_hasher(raw_password: str) -> str:
+    return "supersecret" + raw_password
+
+
+def _fake_save_user(user_in: UserIn) -> UserInDB:
+    hashed_password = _fake_password_hasher(user_in.password)
+    user_in_db = UserInDB(**user_in.dict(), hashed_password=hashed_password)
+    print("User saved! ...not really")  # noqa:T001
+    return user_in_db

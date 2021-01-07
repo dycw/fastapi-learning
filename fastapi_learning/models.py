@@ -65,3 +65,10 @@ class UserOut(BaseModel):
     username: str
     email: EmailStr
     full_name: Optional[str] = None
+
+
+class UserInDB(BaseModel):
+    username: str
+    hashed_password: str
+    email: EmailStr
+    full_name: Optional[str] = None
