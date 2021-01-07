@@ -65,3 +65,17 @@ class UserOut(UserBase):
 
 class UserInDB(UserBase):
     hashed_password: str
+
+
+class BaseItem(BaseModel):
+    description: str
+    type: str  # noqa:A003
+
+
+class CarItem(BaseItem):
+    type: str = "car"  # noqa:A003
+
+
+class PlaneItem(BaseItem):
+    type: str = "plane"  # noqa:A003
+    size: int

@@ -11,8 +11,10 @@ from typing import TypeVar
 
 from fastapi import Body
 from fastapi import FastAPI
+from fastapi import Form
 from fastapi import Header
 from fastapi import Path
+from starlette.status import HTTP_201_CREATED
 
 from fastapi_learning.models import Image
 from fastapi_learning.models import Item
@@ -60,7 +62,7 @@ async def items__index__get(
     return {"X-Token values": x_token}
 
 
-@_APP_POST("/items/", response_model=Item)
+@_APP_POST("/items/", response_model=Item, status_code=HTTP_201_CREATED)
 async def items__index__post(item: Item) -> Item:
     return item
 
@@ -70,17 +72,25 @@ async def items__index__post(item: Item) -> Item:
     response_model=Item,
     response_model_exclude_unset=True,
 )
-async def items__get(item_id: str) -> Dict[str, Any]:
+async def items__id__get(item_id: str) -> Dict[str, Any]:
     return {"item_id": item_id}
 
 
 @_APP_PUT("/items/{item_id}")
-async def items__put(
+async def items__id__put(
     *,
     item_id: int = Path(..., title="The ID of the item to get", ge=0, le=1000),
     item: Item = Body(..., embed=True),
 ) -> Dict[str, Any]:
     return {"item_id": item_id, "item": item}
+
+
+@_APP_POST("/login/")
+async def login(
+    username: str = Form(...),
+    password: str = Form(...),  # noqa:U100
+) -> Dict[str, Any]:
+    return {"username": username}
 
 
 @_APP_GET("/models/{model_name}")
