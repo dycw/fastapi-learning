@@ -5,9 +5,12 @@ from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
+from typing import Optional
 from typing import TypeVar
 
 from fastapi import FastAPI
+from fastapi import Path
+from fastapi import Query
 
 from fastapi_learning.models import Item
 
@@ -45,11 +48,6 @@ async def read_user_not_me(user_id: str) -> Dict[str, str]:
     return {"user_id": user_id}
 
 
-@_APP_POST("/items/")
-async def create_item(item: Item) -> Item:
-    return item
-
-
 @_APP_GET("/models/{model_name}")
 async def get_model(model_name: ModelName) -> Dict[str, Any]:
     return {
@@ -60,3 +58,39 @@ async def get_model(model_name: ModelName) -> Dict[str, Any]:
             ModelName.resnet: "Have some residuals",
         }[model_name],
     }
+
+
+@_APP_POST("/items/")
+async def create_item__post(
+    item_id: int,
+    item: Item,
+    q: Optional[str] = None,
+) -> Dict[str, Any]:
+    out: Dict[str, Any] = {"item_id": item_id, **item.dict()}
+    if item.tax:
+        out["price_with_tax"] = item.price + item.tax
+    if q:
+        out["q"] = q
+    return out
+
+
+@_APP_PUT("/items/{item_id}")
+async def create_item__put(item_id: int, item: Item) -> Dict[str, Any]:
+    return {"item_id": item_id, **item.dict()}
+
+
+@_APP_GET("/items/{item_id}")
+async def read_items__get(
+    *,
+    item_id: int = Path(..., title="The ID of the item to get"),
+    q: str,
+    size: float = Query(
+        ...,
+        gt=0.0,
+        lt=10.5,
+    ),
+) -> Dict[str, Any]:
+    results: Dict[str, Any] = {"items": item_id, "size": size}
+    if q:
+        results.update({"q": q})
+    return results
