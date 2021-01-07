@@ -57,8 +57,16 @@ async def index() -> HTMLResponse:
 
 
 @_APP_POST("/files/")
-async def files(files: List[bytes] = File(...)) -> Dict[str, Any]:
-    return {"file_size": [len(file) for file in files]}
+async def files(
+    file: bytes = File(...),
+    fileb: UploadFile = File(...),
+    token: str = Form(...),
+) -> Dict[str, Any]:
+    return {
+        "file_size": len(file),
+        "fileb_content_type": fileb.content_type,
+        "token": token,
+    }
 
 
 @_APP_GET("/files/{file_path:path}")
