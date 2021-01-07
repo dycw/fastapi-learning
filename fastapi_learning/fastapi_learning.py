@@ -14,6 +14,7 @@ from fastapi import FastAPI
 from fastapi import File
 from fastapi import Form
 from fastapi import Header
+from fastapi import HTTPException
 from fastapi import Path
 from fastapi import status
 from fastapi import UploadFile
@@ -96,13 +97,21 @@ async def items__index__post(item: Item) -> Item:
     return item
 
 
+ITEMS = {"foo": "The Foo Wrestlers"}
+
+
 @_APP_GET(
     "/items/{item_id}",
     response_model=Item,
     response_model_exclude_unset=True,
 )
 async def items__id__get(item_id: str) -> Dict[str, Any]:
-    return {"item_id": item_id}
+    if item_id not in ITEMS:
+        raise HTTPException(
+            status_code=status.HTTP_404_NOT_FOUND,
+            detail="Item not found",
+        )
+    return {"item_id": ITEMS[item_id]}
 
 
 @_APP_PUT("/items/{item_id}")
