@@ -10,12 +10,14 @@ from typing import Optional
 from typing import TypeVar
 
 from fastapi import Body
+from fastapi import Cookie
 from fastapi import FastAPI
+from fastapi import Header
 from fastapi import Path
-from fastapi import Query
 
 from fastapi_learning.models import Image
 from fastapi_learning.models import Item
+from fastapi_learning.models import UserIn
 
 APP = FastAPI()
 T = TypeVar("T")
@@ -36,22 +38,12 @@ async def index() -> Dict[str, str]:
 
 
 @_APP_GET("/files/{file_path:path}")
-async def read_file(file_path: str) -> Dict[str, str]:
+async def files__get(file_path: str) -> Dict[str, str]:
     return {"file_path": file_path}
 
 
-@_APP_GET("/users/me")
-async def read_user_me() -> Dict[str, str]:
-    return {"user_id": "the current user"}
-
-
-@_APP_GET("/users/{user_id}")
-async def read_user_not_me(user_id: str) -> Dict[str, str]:
-    return {"user_id": user_id}
-
-
 @_APP_GET("/models/{model_name}")
-async def get_model(model_name: ModelName) -> Dict[str, Any]:
+async def models__get(model_name: ModelName) -> Dict[str, Any]:
     return {
         "model_name": model_name,
         "message": {
@@ -62,22 +54,27 @@ async def get_model(model_name: ModelName) -> Dict[str, Any]:
     }
 
 
-@_APP_POST("/items/")
-async def create_item__post(
-    item_id: int,
-    item: Item,
-    q: Optional[str] = None,
+@_APP_GET("/items/")
+async def items__index__get(
+    x_token: Optional[List[str]] = Header(None),
 ) -> Dict[str, Any]:
-    out: Dict[str, Any] = {"item_id": item_id, **item.dict()}
-    if item.tax:
-        out["price_with_tax"] = item.price + item.tax
-    if q:
-        out["q"] = q
-    return out
+    return {"X-Token values": x_token}
+
+
+@_APP_POST("/items/", response_model=Item)
+async def items__index__post(item: Item) -> Item:
+    return item
+
+
+@_APP_GET("/items/{item_id}")
+async def items__get(
+    ads_id: Optional[str] = Cookie(None),
+) -> Dict[str, Any]:
+    return {"ads_id": ads_id}
 
 
 @_APP_PUT("/items/{item_id}")
-async def update_item(
+async def items__put(
     *,
     item_id: int = Path(..., title="The ID of the item to get", ge=0, le=1000),
     item: Item = Body(..., embed=True),
@@ -85,23 +82,26 @@ async def update_item(
     return {"item_id": item_id, "item": item}
 
 
-@_APP_GET("/items/{item_id}")
-async def read_items__get(
-    *,
-    item_id: int = Path(..., title="The ID of the item to get"),
-    q: str,
-    size: float = Query(
-        ...,
-        gt=0.0,
-        lt=10.5,
-    ),
-) -> Dict[str, Any]:
-    results: Dict[str, Any] = {"items": item_id, "size": size}
-    if q:
-        results.update({"q": q})
-    return results
-
-
 @_APP_POST("/images/multiple/")
-async def create_multiple_images(images: List[Image]) -> List[Image]:
+async def images__multiple__index(images: List[Image]) -> List[Image]:
     return images
+
+
+@_APP_POST("/index-weights/")
+async def index_weights__post(weights: Dict[int, float]) -> Dict[int, float]:
+    return weights
+
+
+@_APP_POST("/user/", response_model=UserIn)
+async def user__post(user: UserIn) -> UserIn:
+    return user
+
+
+@_APP_GET("/users/me")
+async def users__me__get() -> Dict[str, str]:
+    return {"user_id": "the current user"}
+
+
+@_APP_GET("/users/{user_id}")
+async def users__other__get(user_id: str) -> Dict[str, str]:
+    return {"user_id": user_id}

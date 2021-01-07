@@ -5,6 +5,7 @@ from typing import Optional
 from typing import Set
 
 from pydantic import BaseModel
+from pydantic import EmailStr
 from pydantic import Field
 from pydantic import HttpUrl
 
@@ -30,6 +31,16 @@ class Item(BaseModel):
     tags: Set[str] = set()
     images: Optional[List[Image]] = None
 
+    class Config:
+        schema_extra = {
+            "example": {
+                "name": "Foo",
+                "description": "A very nice Item",
+                "price": 35.4,
+                "tax": 3.2,
+            },
+        }
+
 
 class Offer(BaseModel):
     name: str
@@ -40,4 +51,11 @@ class Offer(BaseModel):
 
 class User(BaseModel):
     username: str
+    full_name: Optional[str] = None
+
+
+class UserIn(BaseModel):
+    username: str
+    password: str
+    email: EmailStr
     full_name: Optional[str] = None
