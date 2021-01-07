@@ -27,7 +27,7 @@ class Item(BaseModel):
         gt=0,
         description="The price must be greater zero",
     )
-    tax: Optional[float] = None
+    tax: float = 10.5
     tags: Set[str] = set()
     images: Optional[List[Image]] = None
 
@@ -57,5 +57,11 @@ class User(BaseModel):
 class UserIn(BaseModel):
     username: str
     password: str
+    email: EmailStr
+    full_name: Optional[str] = None
+
+
+class UserOut(BaseModel):
+    username: str
     email: EmailStr
     full_name: Optional[str] = None

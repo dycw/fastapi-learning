@@ -10,7 +10,6 @@ from typing import Optional
 from typing import TypeVar
 
 from fastapi import Body
-from fastapi import Cookie
 from fastapi import FastAPI
 from fastapi import Header
 from fastapi import Path
@@ -18,6 +17,7 @@ from fastapi import Path
 from fastapi_learning.models import Image
 from fastapi_learning.models import Item
 from fastapi_learning.models import UserIn
+from fastapi_learning.models import UserOut
 
 APP = FastAPI()
 T = TypeVar("T")
@@ -42,16 +42,14 @@ async def files__get(file_path: str) -> Dict[str, str]:
     return {"file_path": file_path}
 
 
-@_APP_GET("/models/{model_name}")
-async def models__get(model_name: ModelName) -> Dict[str, Any]:
-    return {
-        "model_name": model_name,
-        "message": {
-            ModelName.alexnet: "Deep Learning FTW!",
-            ModelName.lenet: "LeCNN all the images",
-            ModelName.resnet: "Have some residuals",
-        }[model_name],
-    }
+@_APP_POST("/images/multiple/")
+async def images__multiple__index(images: List[Image]) -> List[Image]:
+    return images
+
+
+@_APP_POST("/index-weights/")
+async def index_weights__post(weights: Dict[int, float]) -> Dict[int, float]:
+    return weights
 
 
 @_APP_GET("/items/")
@@ -66,11 +64,13 @@ async def items__index__post(item: Item) -> Item:
     return item
 
 
-@_APP_GET("/items/{item_id}")
-async def items__get(
-    ads_id: Optional[str] = Cookie(None),
-) -> Dict[str, Any]:
-    return {"ads_id": ads_id}
+@_APP_GET(
+    "/items/{item_id}",
+    response_model=Item,
+    response_model_exclude_unset=True,
+)
+async def items__get(item_id: str) -> Dict[str, Any]:
+    return {"item_id": item_id}
 
 
 @_APP_PUT("/items/{item_id}")
@@ -82,14 +82,16 @@ async def items__put(
     return {"item_id": item_id, "item": item}
 
 
-@_APP_POST("/images/multiple/")
-async def images__multiple__index(images: List[Image]) -> List[Image]:
-    return images
-
-
-@_APP_POST("/index-weights/")
-async def index_weights__post(weights: Dict[int, float]) -> Dict[int, float]:
-    return weights
+@_APP_GET("/models/{model_name}")
+async def models__get(model_name: ModelName) -> Dict[str, Any]:
+    return {
+        "model_name": model_name,
+        "message": {
+            ModelName.alexnet: "Deep Learning FTW!",
+            ModelName.lenet: "LeCNN all the images",
+            ModelName.resnet: "Have some residuals",
+        }[model_name],
+    }
 
 
 @_APP_POST("/user/", response_model=UserIn)
@@ -102,6 +104,6 @@ async def users__me__get() -> Dict[str, str]:
     return {"user_id": "the current user"}
 
 
-@_APP_GET("/users/{user_id}")
+@_APP_GET("/users/{user_id}", response_model=UserOut)
 async def users__other__get(user_id: str) -> Dict[str, str]:
     return {"user_id": user_id}
