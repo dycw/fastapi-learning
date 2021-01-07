@@ -83,13 +83,17 @@ async def update_item(
     item: Item,
     user: User,
     importance: int = Body(...),
+    q: Optional[str] = None,
 ) -> Dict[str, Any]:
-    return {
+    results = {
         "item_id": item_id,
         "item": item,
         "user": user,
         "importance": importance,
     }
+    if q is not None:
+        results["q"] = q
+    return results
 
 
 @_APP_GET("/items/{item_id}")
