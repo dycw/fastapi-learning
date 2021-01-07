@@ -49,26 +49,19 @@ class Offer(BaseModel):
     items: List[Item]
 
 
-class User(BaseModel):
+class UserBase(BaseModel):
     username: str
+    email: EmailStr
     full_name: Optional[str] = None
 
 
-class UserIn(BaseModel):
-    username: str
+class UserIn(UserBase):
     password: str
-    email: EmailStr
-    full_name: Optional[str] = None
 
 
-class UserOut(BaseModel):
-    username: str
-    email: EmailStr
-    full_name: Optional[str] = None
+class UserOut(UserBase):
+    pass
 
 
-class UserInDB(BaseModel):
-    username: str
+class UserInDB(UserBase):
     hashed_password: str
-    email: EmailStr
-    full_name: Optional[str] = None
