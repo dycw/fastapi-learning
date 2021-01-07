@@ -13,6 +13,7 @@ from fastapi import Path
 from fastapi import Query
 
 from fastapi_learning.models import Item
+from fastapi_learning.models import User
 
 
 APP = FastAPI()
@@ -78,15 +79,10 @@ async def create_item__post(
 async def update_item(
     *,
     item_id: int = Path(..., title="The ID of the item to get", ge=0, le=1000),
-    q: Optional[str] = None,
-    item: Optional[Item] = None,
+    item: Item,
+    user: User,
 ) -> Dict[str, Any]:
-    results: Dict[str, Any] = {"item_id": item_id}
-    if q:
-        results["q"] = q
-    if item:
-        results["item"] = item
-    return results
+    return {"item_id": item_id, "item": item, "user": user}
 
 
 @_APP_GET("/items/{item_id}")
