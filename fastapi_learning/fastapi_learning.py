@@ -8,6 +8,7 @@ from typing import Dict
 from typing import Optional
 from typing import TypeVar
 
+from fastapi import Body
 from fastapi import FastAPI
 from fastapi import Path
 from fastapi import Query
@@ -81,8 +82,14 @@ async def update_item(
     item_id: int = Path(..., title="The ID of the item to get", ge=0, le=1000),
     item: Item,
     user: User,
+    importance: int = Body(...),
 ) -> Dict[str, Any]:
-    return {"item_id": item_id, "item": item, "user": user}
+    return {
+        "item_id": item_id,
+        "item": item,
+        "user": user,
+        "importance": importance,
+    }
 
 
 @_APP_GET("/items/{item_id}")
