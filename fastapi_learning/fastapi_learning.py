@@ -15,7 +15,9 @@ from fastapi import File
 from fastapi import Form
 from fastapi import Header
 from fastapi import Path
-from starlette.status import HTTP_201_CREATED
+from fastapi import status
+from fastapi import UploadFile
+from fastapi.responses import HTMLResponse
 
 from fastapi_learning.models import Image
 from fastapi_learning.models import Item
@@ -38,13 +40,25 @@ class ModelName(str, Enum):
 
 
 @_APP_GET("/")
-async def index() -> Dict[str, str]:
-    return {"Hello": "World"}
+async def index() -> HTMLResponse:
+    content = """
+<body>
+<form action="/files/" enctype="multipart/form-data" method="post">
+<input name="files" type="file" multiple>
+<input type="submit">
+</form>
+<form action="/uploadfiles/" enctype="multipart/form-data" method="post">
+<input name="files" type="file" multiple>
+<input type="submit">
+</form>
+</body>
+"""
+    return HTMLResponse(content=content)
 
 
 @_APP_POST("/files/")
-async def files(file: bytes = File(...)) -> Dict[str, Any]:
-    return {"file_size": len(file)}
+async def files(files: List[bytes] = File(...)) -> Dict[str, Any]:
+    return {"file_size": [len(file) for file in files]}
 
 
 @_APP_GET("/files/{file_path:path}")
@@ -69,7 +83,7 @@ async def items__index__get(
     return {"X-Token values": x_token}
 
 
-@_APP_POST("/items/", response_model=Item, status_code=HTTP_201_CREATED)
+@_APP_POST("/items/", response_model=Item, status_code=status.HTTP_201_CREATED)
 async def items__index__post(item: Item) -> Item:
     return item
 
@@ -110,6 +124,11 @@ async def models__get(model_name: ModelName) -> Dict[str, Any]:
             ModelName.resnet: "Have some residuals",
         }[model_name],
     }
+
+
+@_APP_POST("/upload_files/")
+async def upload_files(files: List[UploadFile] = File(...)) -> Dict[str, Any]:
+    return {"filename": [file.filename for file in files]}
 
 
 @_APP_POST("/user/", response_model=UserOut)
