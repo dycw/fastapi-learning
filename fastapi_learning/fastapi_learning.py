@@ -5,26 +5,12 @@ from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
-from typing import List
 from typing import Optional
 from typing import TypeVar
 
-from fastapi import Body
+from fastapi import Depends
 from fastapi import FastAPI
-from fastapi import File
-from fastapi import Form
-from fastapi import Header
-from fastapi import HTTPException
-from fastapi import Path
-from fastapi import status
-from fastapi import UploadFile
 from fastapi.responses import HTMLResponse
-
-from fastapi_learning.models import Image
-from fastapi_learning.models import Item
-from fastapi_learning.models import UserIn
-from fastapi_learning.models import UserInDB
-from fastapi_learning.models import UserOut
 
 
 APP = FastAPI()
@@ -57,115 +43,23 @@ async def index() -> HTMLResponse:
     return HTMLResponse(content=content)
 
 
-@_APP_POST("/files/")
-async def files(
-    file: bytes = File(...),
-    fileb: UploadFile = File(...),
-    token: str = Form(...),
+async def common_parameters(
+    q: Optional[str] = None,
+    skip: int = 0,
+    limit: int = 100,
 ) -> Dict[str, Any]:
-    return {
-        "file_size": len(file),
-        "fileb_content_type": fileb.content_type,
-        "token": token,
-    }
-
-
-@_APP_GET("/files/{file_path:path}")
-async def files__get(file_path: str) -> Dict[str, str]:
-    return {"file_path": file_path}
-
-
-@_APP_POST("/images/multiple/")
-async def images__multiple__index(images: List[Image]) -> List[Image]:
-    return images
-
-
-@_APP_POST("/index-weights/")
-async def index_weights__post(weights: Dict[int, float]) -> Dict[int, float]:
-    return weights
+    return {"q": q, "skip": skip, "limit": limit}
 
 
 @_APP_GET("/items/")
-async def items__index__get(
-    x_token: Optional[List[str]] = Header(None),
+async def read_items(
+    commons: Dict[str, Any] = Depends(common_parameters),
 ) -> Dict[str, Any]:
-    return {"X-Token values": x_token}
+    return commons
 
 
-@_APP_POST("/items/", response_model=Item, status_code=status.HTTP_201_CREATED)
-async def items__index__post(item: Item) -> Item:
-    return item
-
-
-ITEMS = {"foo": Item(name="arst", description="fniw3")}
-
-
-@_APP_GET("/items/{item_id}")
-async def items__id__get(item_id: str) -> Dict[str, Any]:
-    if item_id not in ITEMS:
-        raise HTTPException(
-            status_code=status.HTTP_404_NOT_FOUND,
-            detail="Item not found",
-        )
-    item = ITEMS[item_id]
-    return {"ss": Item(name=item.name, description="arst")}
-
-
-@_APP_PUT("/items/{item_id}")
-async def items__id__put(
-    *,
-    item_id: int = Path(..., title="The ID of the item to get", ge=0, le=1000),
-    item: Item = Body(..., embed=True),
+@_APP_GET("/users/")
+async def read_users(
+    commons: Dict[str, Any] = Depends(common_parameters),
 ) -> Dict[str, Any]:
-    return {"item_id": item_id, "item": item}
-
-
-@_APP_POST("/login/")
-async def login(
-    username: str = Form(...),
-    password: str = Form(...),  # noqa:U100
-) -> Dict[str, Any]:
-    return {"username": username}
-
-
-@_APP_GET("/models/{model_name}")
-async def models__get(model_name: ModelName) -> Dict[str, Any]:
-    return {
-        "model_name": model_name,
-        "message": {
-            ModelName.alexnet: "Deep Learning FTW!",
-            ModelName.lenet: "LeCNN all the images",
-            ModelName.resnet: "Have some residuals",
-        }[model_name],
-    }
-
-
-@_APP_POST("/upload_files/")
-async def upload_files(files: List[UploadFile] = File(...)) -> Dict[str, Any]:
-    return {"filename": [file.filename for file in files]}
-
-
-@_APP_POST("/user/", response_model=UserOut)
-async def user__post(user_in: UserIn) -> UserOut:
-    return cast(UserOut, _fake_save_user(user_in))
-
-
-@_APP_GET("/users/me")
-async def users__me__get() -> Dict[str, str]:
-    return {"user_id": "the current user"}
-
-
-@_APP_GET("/users/{user_id}", response_model=UserOut)
-async def users__other__get(user_id: str) -> Dict[str, str]:
-    return {"user_id": user_id}
-
-
-def _fake_password_hasher(raw_password: str) -> str:
-    return "supersecret" + raw_password
-
-
-def _fake_save_user(user_in: UserIn) -> UserInDB:
-    hashed_password = _fake_password_hasher(user_in.password)
-    user_in_db = UserInDB(**user_in.dict(), hashed_password=hashed_password)
-    print("User saved! ...not really")  # noqa:T001
-    return user_in_db
+    return commons
