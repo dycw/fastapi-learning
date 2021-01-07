@@ -11,6 +11,7 @@ from typing import TypeVar
 
 from fastapi import Body
 from fastapi import FastAPI
+from fastapi import File
 from fastapi import Form
 from fastapi import Header
 from fastapi import Path
@@ -21,6 +22,7 @@ from fastapi_learning.models import Item
 from fastapi_learning.models import UserIn
 from fastapi_learning.models import UserInDB
 from fastapi_learning.models import UserOut
+
 
 APP = FastAPI()
 T = TypeVar("T")
@@ -38,6 +40,11 @@ class ModelName(str, Enum):
 @_APP_GET("/")
 async def index() -> Dict[str, str]:
     return {"Hello": "World"}
+
+
+@_APP_POST("/files/")
+async def files(file: bytes = File(...)) -> Dict[str, Any]:
+    return {"file_size": len(file)}
 
 
 @_APP_GET("/files/{file_path:path}")
