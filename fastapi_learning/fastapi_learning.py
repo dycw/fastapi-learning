@@ -5,6 +5,7 @@ from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
+from typing import List
 from typing import Optional
 from typing import TypeVar
 
@@ -13,8 +14,8 @@ from fastapi import FastAPI
 from fastapi import Path
 from fastapi import Query
 
+from fastapi_learning.models import Image
 from fastapi_learning.models import Item
-
 
 APP = FastAPI()
 T = TypeVar("T")
@@ -99,3 +100,8 @@ async def read_items__get(
     if q:
         results.update({"q": q})
     return results
+
+
+@_APP_POST("/images/multiple/")
+async def create_multiple_images(images: List[Image]) -> List[Image]:
+    return images

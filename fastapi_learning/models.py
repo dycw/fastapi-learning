@@ -31,6 +31,13 @@ class Item(BaseModel):
     images: Optional[List[Image]] = None
 
 
+class Offer(BaseModel):
+    name: str
+    description: Optional[str] = None
+    price: float
+    items: List[Item]
+
+
 class User(BaseModel):
     username: str
     full_name: Optional[str] = None
