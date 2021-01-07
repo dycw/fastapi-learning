@@ -75,8 +75,18 @@ async def create_item__post(
 
 
 @_APP_PUT("/items/{item_id}")
-async def create_item__put(item_id: int, item: Item) -> Dict[str, Any]:
-    return {"item_id": item_id, **item.dict()}
+async def update_item(
+    *,
+    item_id: int = Path(..., title="The ID of the item to get", ge=0, le=1000),
+    q: Optional[str] = None,
+    item: Optional[Item] = None,
+) -> Dict[str, Any]:
+    results: Dict[str, Any] = {"item_id": item_id}
+    if q:
+        results["q"] = q
+    if item:
+        results["item"] = item
+    return results
 
 
 @_APP_GET("/items/{item_id}")
