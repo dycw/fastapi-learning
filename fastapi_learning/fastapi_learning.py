@@ -97,21 +97,18 @@ async def items__index__post(item: Item) -> Item:
     return item
 
 
-ITEMS = {"foo": "The Foo Wrestlers"}
+ITEMS = {"foo": Item(name="arst", description="fniw3")}
 
 
-@_APP_GET(
-    "/items/{item_id}",
-    response_model=Item,
-    response_model_exclude_unset=True,
-)
+@_APP_GET("/items/{item_id}")
 async def items__id__get(item_id: str) -> Dict[str, Any]:
     if item_id not in ITEMS:
         raise HTTPException(
             status_code=status.HTTP_404_NOT_FOUND,
             detail="Item not found",
         )
-    return {"item_id": ITEMS[item_id]}
+    item = ITEMS[item_id]
+    return {"ss": Item(name=item.name, description="arst")}
 
 
 @_APP_PUT("/items/{item_id}")

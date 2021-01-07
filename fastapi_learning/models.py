@@ -2,7 +2,6 @@ from __future__ import annotations
 
 from typing import List
 from typing import Optional
-from typing import Set
 
 from pydantic import BaseModel
 from pydantic import EmailStr
@@ -22,24 +21,6 @@ class Item(BaseModel):
         title="The description of the item",
         max_length=300,
     )
-    price: float = Field(
-        ...,
-        gt=0,
-        description="The price must be greater zero",
-    )
-    tax: float = 10.5
-    tags: Set[str] = set()
-    images: Optional[List[Image]] = None
-
-    class Config:
-        schema_extra = {
-            "example": {
-                "name": "Foo",
-                "description": "A very nice Item",
-                "price": 35.4,
-                "tax": 3.2,
-            },
-        }
 
 
 class Offer(BaseModel):
