@@ -1,3 +1,4 @@
+email-validator == 1.1.*
 fastapi == 0.63.*
 jinja2 == 2.11.*
 sqlalchemy == 1.3.*
