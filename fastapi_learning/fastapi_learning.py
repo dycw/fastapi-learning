@@ -1,121 +1,155 @@
-from __future__ import annotations
-
-from enum import Enum
+from datetime import datetime
+from datetime import timedelta
 from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
-from typing import List
 from typing import Optional
 from typing import TypeVar
 
-from fastapi import Body
+from fastapi import Depends
 from fastapi import FastAPI
-from fastapi import Header
-from fastapi import Path
+from fastapi import HTTPException
+from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordRequestForm
+from jose import jwt
+from jose import JWTError
+from passlib.context import CryptContext
+from starlette.status import HTTP_401_UNAUTHORIZED
 
-from fastapi_learning.models import Image
-from fastapi_learning.models import Item
-from fastapi_learning.models import UserIn
+from fastapi_learning.fake_db import DB_TYPE
+from fastapi_learning.fake_db import FAKE_USERS_DB
+from fastapi_learning.models import Token
+from fastapi_learning.models import TokenData
 from fastapi_learning.models import UserInDB
-from fastapi_learning.models import UserOut
+
 
 APP = FastAPI()
 T = TypeVar("T")
-_APP_GET = cast(Callable[..., Callable[[T], T]], APP.get)
-_APP_POST = cast(Callable[..., Callable[[T], T]], APP.post)
-_APP_PUT = cast(Callable[..., Callable[[T], T]], APP.put)
+APP_GET = cast(Callable[..., Callable[[T], T]], APP.get)
+APP_POST = cast(Callable[..., Callable[[T], T]], APP.post)
+APP_PUT = cast(Callable[..., Callable[[T], T]], APP.put)
 
 
-class ModelName(str, Enum):
-    alexnet = "alexnet"
-    resnet = "resnet"
-    lenet = "lenet"
-
-
-@_APP_GET("/")
-async def index() -> Dict[str, str]:
-    return {"Hello": "World"}
-
-
-@_APP_GET("/files/{file_path:path}")
-async def files__get(file_path: str) -> Dict[str, str]:
-    return {"file_path": file_path}
-
-
-@_APP_POST("/images/multiple/")
-async def images__multiple__index(images: List[Image]) -> List[Image]:
-    return images
-
-
-@_APP_POST("/index-weights/")
-async def index_weights__post(weights: Dict[int, float]) -> Dict[int, float]:
-    return weights
-
-
-@_APP_GET("/items/")
-async def items__index__get(
-    x_token: Optional[List[str]] = Header(None),
-) -> Dict[str, Any]:
-    return {"X-Token values": x_token}
-
-
-@_APP_POST("/items/", response_model=Item)
-async def items__index__post(item: Item) -> Item:
-    return item
-
-
-@_APP_GET(
-    "/items/{item_id}",
-    response_model=Item,
-    response_model_exclude_unset=True,
+SECRET_KEY = (
+    "e13c4e83322345079b0087fa63700598"  # noqa:S105
+    "464e9ab8401ad53a318ab1793d299143"
 )
-async def items__get(item_id: str) -> Dict[str, Any]:
-    return {"item_id": item_id}
+ALGORITHM = "HS256"
+ACCESS_TOKEN_EXPIRE_MINUTES = 30
+OAUTH2_SCHEME = OAuth2PasswordBearer(tokenUrl="token")
+PWD_CONTEXT = CryptContext(schemes=["bcrypt"], deprecated="auto")
 
 
-@_APP_PUT("/items/{item_id}")
-async def items__put(
-    *,
-    item_id: int = Path(..., title="The ID of the item to get", ge=0, le=1000),
-    item: Item = Body(..., embed=True),
+@APP_GET("/items/")
+async def read_items(
+    token: str = Depends(OAUTH2_SCHEME),
 ) -> Dict[str, Any]:
-    return {"item_id": item_id, "item": item}
+    return {"token": token}
 
 
-@_APP_GET("/models/{model_name}")
-async def models__get(model_name: ModelName) -> Dict[str, Any]:
-    return {
-        "model_name": model_name,
-        "message": {
-            ModelName.alexnet: "Deep Learning FTW!",
-            ModelName.lenet: "LeCNN all the images",
-            ModelName.resnet: "Have some residuals",
-        }[model_name],
-    }
+def fake_decode_token(token: str) -> Optional[UserInDB]:
+    return get_user(FAKE_USERS_DB, token)
 
 
-@_APP_POST("/user/", response_model=UserOut)
-async def user__post(user_in: UserIn) -> UserOut:
-    return cast(UserOut, _fake_save_user(user_in))
+def fake_hash_password(password: str) -> str:
+    return "fakehashed" + password
 
 
-@_APP_GET("/users/me")
-async def users__me__get() -> Dict[str, str]:
-    return {"user_id": "the current user"}
+def verify_password(plain_password: str, hashed_password: str) -> bool:
+    return PWD_CONTEXT.verify(plain_password, hashed_password)
 
 
-@_APP_GET("/users/{user_id}", response_model=UserOut)
-async def users__other__get(user_id: str) -> Dict[str, str]:
-    return {"user_id": user_id}
+def get_password_hash(password: str) -> str:
+    return PWD_CONTEXT.hash(password)
 
 
-def _fake_password_hasher(raw_password: str) -> str:
-    return "supersecret" + raw_password
+def get_user(db: DB_TYPE, username: str) -> Optional[UserInDB]:
+    return UserInDB(**db[username]) if username in db else None
 
 
-def _fake_save_user(user_in: UserIn) -> UserInDB:
-    hashed_password = _fake_password_hasher(user_in.password)
-    user_in_db = UserInDB(**user_in.dict(), hashed_password=hashed_password)
-    print("User saved! ...not really")  # noqa:T001
-    return user_in_db
+def authenticate_user(
+    fake_db: DB_TYPE,
+    username: str,
+    password: str,
+) -> Optional[UserInDB]:
+    user = get_user(fake_db, username)
+    return (
+        user
+        if (user and verify_password(password, user.hashed_password))
+        else None
+    )
+
+
+def create_access_token(
+    data: dict,
+    expires_delta: Optional[timedelta] = None,
+) -> str:
+    expire = datetime.utcnow() + (
+        timedelta(minutes=15) if expires_delta is None else expires_delta
+    )
+    return jwt.encode(
+        claims={"exp": expire, **data},
+        key=SECRET_KEY,
+        algorithm=ALGORITHM,
+    )
+
+
+async def get_current_user(token: str = Depends(OAUTH2_SCHEME)) -> UserInDB:
+    credentials_exception = HTTPException(
+        status_code=HTTP_401_UNAUTHORIZED,
+        detail="Could not validate credentials",
+        headers={"WWW-Authenticate": "Bearer"},
+    )
+    try:
+        payload = jwt.decode(token, SECRET_KEY, algorithms=[ALGORITHM])
+        username: str = payload.get("sub")
+        if username is None:
+            raise credentials_exception
+        token_data = TokenData(username=username)
+        if token_data.username is None:
+            raise credentials_exception
+    except JWTError:
+        raise credentials_exception
+    user = get_user(FAKE_USERS_DB, username=token_data.username)
+    if user is None:
+        raise credentials_exception
+    return user
+
+
+async def get_current_active_user(
+    current_user: UserInDB = Depends(get_current_user),
+) -> UserInDB:
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+@APP_POST("/token", response_model=Token)
+async def login_for_access_token(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+) -> Dict[str, Any]:
+    user = authenticate_user(
+        FAKE_USERS_DB,
+        form_data.username,
+        form_data.password,
+    )
+    if user is None:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=access_token_expires,
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
+
+
+@APP_GET("/users/me")
+async def read_users_me(
+    current_user: UserInDB = Depends(get_current_active_user),
+) -> UserInDB:
+    return current_user
