@@ -68,10 +68,10 @@ async def read_items(
 ) -> Dict[str, Any]:
     response: Dict[str, Any] = {}
     if commons.q:
-        response.update({"q": commons.q})
+        response["q"] = commons.q
     fake_items_db: List[Dict[str, Any]] = []
     items = fake_items_db[commons.skip : commons.skip + commons.limit]
-    response.update({"items": items})
+    response["items"] = items
     return response
 
 
