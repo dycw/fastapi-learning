@@ -22,11 +22,11 @@ from jose import JWTError
 from passlib.context import CryptContext
 from starlette.responses import StreamingResponse
 
-from fastapi_learning.fake_db import DB_TYPE
-from fastapi_learning.fake_db import FAKE_USERS_DB
-from fastapi_learning.models import Token
-from fastapi_learning.models import TokenData
-from fastapi_learning.models import UserInDB
+from fastapi_learning.database import DB_TYPE
+from fastapi_learning.database import FAKE_USERS_DB
+from fastapi_learning.schemas import Token
+from fastapi_learning.schemas import TokenData
+from fastapi_learning.schemas import UserInDB
 
 
 APP = FastAPI()
@@ -114,7 +114,9 @@ def create_access_token(
     )
 
 
-async def get_current_user(token: str = Depends(OAUTH2_SCHEME)) -> UserInDB:
+async def get_current_user(
+    token: str = Depends(OAUTH2_SCHEME),
+) -> UserInDB:
     credentials_exception = HTTPException(
         status_code=status.HTTP_401_UNAUTHORIZED,
         detail="Could not validate credentials",
