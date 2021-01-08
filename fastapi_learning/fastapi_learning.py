@@ -2,14 +2,19 @@ from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
+from typing import Optional
 from typing import TypeVar
 
 from fastapi import Depends
 from fastapi import FastAPI
+from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
+from starlette.status import HTTP_401_UNAUTHORIZED
 
+from fastapi_learning.fake_db import DB_TYPE
+from fastapi_learning.fake_db import FAKE_USERS_DB
 from fastapi_learning.models import User
-
+from fastapi_learning.models import UserInDB
 
 APP = FastAPI()
 T = TypeVar("T")
@@ -28,16 +33,27 @@ async def read_items(
     return {"token": token}
 
 
-def fake_decode_token(token: str) -> User:
-    return User(
-        username=token + "fakedecoded",
-        email="john@example.com",
-        full_name="John Doe",
-    )
+def fake_decode_token(token: str) -> Optional[UserInDB]:
+    return get_user(FAKE_USERS_DB, token)
 
 
-async def get_current_user(token: str = Depends(OAUTH2_SCHEME)) -> User:
-    return fake_decode_token(token)
+def fake_hash_password(password: str) -> str:
+    return "fakehashed" + password
+
+
+def get_user(db: DB_TYPE, username: str) -> Optional[UserInDB]:
+    return UserInDB(**db[username]) if username in db else None
+
+
+async def get_current_user(token: str = Depends(OAUTH2_SCHEME)) -> UserInDB:
+    user = fake_decode_token(token)
+    if not user:
+        raise HTTPException(
+            status_code=HTTP_401_UNAUTHORIZED,
+            detail="Invalid authentication credentials",
+            headers={"WWW-Authenticate": "Bearer"},
+        )
+    return user
 
 
 @APP_GET("/users/me")
