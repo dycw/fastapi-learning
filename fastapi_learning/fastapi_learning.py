@@ -52,7 +52,7 @@ async def common_parameters(
 
 class CommonQueryParams:
     def __init__(
-        self: "CommonQueryParams",
+        self,
         q: Optional[str] = None,
         skip: int = 0,
         limit: int = 100,
