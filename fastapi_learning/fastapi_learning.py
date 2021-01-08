@@ -64,7 +64,7 @@ class CommonQueryParams:
 
 @_APP_GET("/items/")
 async def read_items(
-    commons: CommonQueryParams = Depends(CommonQueryParams),
+    commons: CommonQueryParams = Depends(),
 ) -> Dict[str, Any]:
     response: Dict[str, Any] = {}
     if commons.q:
