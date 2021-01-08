@@ -14,7 +14,30 @@ from fastapi_learning.bigger_app.routers import users
 from fastapi_learning.types import T
 
 
-app = FastAPI(dependencies=[Depends(get_query_token)])
+tags_metadata = [
+    {
+        "name": "users",
+        "description": "Operations with users. The **login** logic is also here.",
+    },
+    {
+        "name": "items",
+        "description": "Manage items. So _fancy_ they have their own docs.",
+        "externalDocs": {
+            "description": "Items external docs",
+            "url": "https://fastapi.tiangolo.com/",
+        },
+    },
+]
+
+
+app = FastAPI(
+    dependencies=[Depends(get_query_token)],
+    title="My Super Project",
+    description="This is a very fancy project, "
+    "with auto docs for the API and everything",
+    version="2.5.0",
+    openapi_tags=tags_metadata,
+)
 app.include_router(users.router)
 app.include_router(items.router)
 app.include_router(
