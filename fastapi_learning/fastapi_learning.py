@@ -8,6 +8,8 @@ from fastapi import Depends
 from fastapi import FastAPI
 from fastapi.security import OAuth2PasswordBearer
 
+from fastapi_learning.models import User
+
 
 APP = FastAPI()
 T = TypeVar("T")
@@ -24,3 +26,20 @@ async def read_items(
     token: str = Depends(OAUTH2_SCHEME),
 ) -> Dict[str, Any]:
     return {"token": token}
+
+
+def fake_decode_token(token: str) -> User:
+    return User(
+        username=token + "fakedecoded",
+        email="john@example.com",
+        full_name="John Doe",
+    )
+
+
+async def get_current_user(token: str = Depends(OAUTH2_SCHEME)) -> User:
+    return fake_decode_token(token)
+
+
+@APP_GET("/users/me")
+async def read_users_me(current_user: User = Depends(get_current_user)) -> User:
+    return current_user
