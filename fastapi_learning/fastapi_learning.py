@@ -9,6 +9,7 @@ from fastapi import Depends
 from fastapi import FastAPI
 from fastapi import HTTPException
 from fastapi.security import OAuth2PasswordBearer
+from fastapi.security import OAuth2PasswordRequestForm
 from starlette.status import HTTP_401_UNAUTHORIZED
 
 from fastapi_learning.fake_db import DB_TYPE
@@ -56,6 +57,37 @@ async def get_current_user(token: str = Depends(OAUTH2_SCHEME)) -> UserInDB:
     return user
 
 
+async def get_current_active_user(
+    current_user: User = Depends(get_current_user),
+) -> User:
+    if current_user.disabled:
+        raise HTTPException(status_code=400, detail="Inactive user")
+    return current_user
+
+
+@APP_POST("/token")
+async def login(
+    form_data: OAuth2PasswordRequestForm = Depends(),
+) -> Dict[str, Any]:
+    try:
+        user_dict = FAKE_USERS_DB[form_data.username]
+    except KeyError:
+        raise HTTPException(
+            status_code=400,
+            detail="Incorrect username or password",
+        )
+    user = UserInDB(**user_dict)
+    hashed_password = fake_hash_password(form_data.password)
+    if hashed_password != user.hashed_password:
+        raise HTTPException(
+            status_code=400,
+            detail="Incorrect username or password",
+        )
+    return {"access_token": user.username, "token_type": "bearer"}
+
+
 @APP_GET("/users/me")
-async def read_users_me(current_user: User = Depends(get_current_user)) -> User:
+async def read_users_me(
+    current_user: UserInDB = Depends(get_current_active_user),
+) -> UserInDB:
     return current_user
