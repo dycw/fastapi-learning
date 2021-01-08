@@ -6,7 +6,6 @@ from typing import cast
 from typing import Dict
 from typing import Optional
 from typing import TypeVar
-from typing import Union
 
 from fastapi import Depends
 from fastapi import FastAPI
@@ -20,6 +19,7 @@ from starlette.status import HTTP_401_UNAUTHORIZED
 
 from fastapi_learning.fake_db import DB_TYPE
 from fastapi_learning.fake_db import FAKE_USERS_DB
+from fastapi_learning.models import Token
 from fastapi_learning.models import TokenData
 from fastapi_learning.models import UserInDB
 
@@ -72,11 +72,13 @@ def authenticate_user(
     fake_db: DB_TYPE,
     username: str,
     password: str,
-) -> Union[UserInDB, bool]:
+) -> Optional[UserInDB]:
     user = get_user(fake_db, username)
-    if not (user and verify_password(password, user.hashed_password)):
-        return False
-    return user
+    return (
+        user
+        if (user and verify_password(password, user.hashed_password))
+        else None
+    )
 
 
 def create_access_token(
@@ -105,9 +107,9 @@ async def get_current_user(token: str = Depends(OAUTH2_SCHEME)) -> UserInDB:
         if username is None:
             raise credentials_exception
         token_data = TokenData(username=username)
+        if token_data.username is None:
+            raise credentials_exception
     except JWTError:
-        raise credentials_exception
-    if token_data.username is None:
         raise credentials_exception
     user = get_user(FAKE_USERS_DB, username=token_data.username)
     if user is None:
@@ -123,24 +125,27 @@ async def get_current_active_user(
     return current_user
 
 
-@APP_POST("/token")
-async def login(
+@APP_POST("/token", response_model=Token)
+async def login_for_access_token(
     form_data: OAuth2PasswordRequestForm = Depends(),
 ) -> Dict[str, Any]:
-    try:
-        user_dict = FAKE_USERS_DB[form_data.username]
-    except KeyError:
+    user = authenticate_user(
+        FAKE_USERS_DB,
+        form_data.username,
+        form_data.password,
+    )
+    if user is None:
         raise HTTPException(
-            status_code=400,
+            status_code=HTTP_401_UNAUTHORIZED,
             detail="Incorrect username or password",
+            headers={"WWW-Authenticate": "Bearer"},
         )
-    user = UserInDB(**user_dict)
-    if fake_hash_password(form_data.password) != user.hashed_password:
-        raise HTTPException(
-            status_code=400,
-            detail="Incorrect username or password",
-        )
-    return {"access_token": user.username, "token_type": "bearer"}
+    access_token_expires = timedelta(minutes=ACCESS_TOKEN_EXPIRE_MINUTES)
+    access_token = create_access_token(
+        data={"sub": user.username},
+        expires_delta=access_token_expires,
+    )
+    return {"access_token": access_token, "token_type": "bearer"}
 
 
 @APP_GET("/users/me")
