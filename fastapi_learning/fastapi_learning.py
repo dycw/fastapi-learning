@@ -1,10 +1,9 @@
-from __future__ import annotations
-
 from enum import Enum
 from typing import Any
 from typing import Callable
 from typing import cast
 from typing import Dict
+from typing import List
 from typing import Optional
 from typing import TypeVar
 
@@ -51,11 +50,29 @@ async def common_parameters(
     return {"q": q, "skip": skip, "limit": limit}
 
 
+class CommonQueryParams:
+    def __init__(
+        self: "CommonQueryParams",
+        q: Optional[str] = None,
+        skip: int = 0,
+        limit: int = 100,
+    ) -> None:
+        self.q = q
+        self.skip = skip
+        self.limit = limit
+
+
 @_APP_GET("/items/")
 async def read_items(
-    commons: Dict[str, Any] = Depends(common_parameters),
+    commons: CommonQueryParams = Depends(CommonQueryParams),
 ) -> Dict[str, Any]:
-    return commons
+    response: Dict[str, Any] = {}
+    if commons.q:
+        response.update({"q": commons.q})
+    fake_items_db: List[Dict[str, Any]] = []
+    items = fake_items_db[commons.skip : commons.skip + commons.limit]
+    response.update({"items": items})
+    return response
 
 
 @_APP_GET("/users/")
