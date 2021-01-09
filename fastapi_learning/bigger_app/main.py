@@ -5,6 +5,7 @@ from typing import Dict
 
 from fastapi import Depends
 from fastapi import FastAPI
+from fastapi.staticfiles import StaticFiles
 
 from fastapi_learning.bigger_app.dependencies import get_query_token
 from fastapi_learning.bigger_app.dependencies import get_token_header
@@ -46,6 +47,11 @@ app.include_router(
     tags=["admin"],
     dependencies=[Depends(get_token_header)],
     responses={418: {"description": "I'm a teapot"}},
+)
+app.mount(
+    "/static",
+    StaticFiles(directory="fastapi_learning/bigger_app/static"),
+    name="static",
 )
 
 
