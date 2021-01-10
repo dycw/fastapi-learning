@@ -8,14 +8,14 @@ from fastapi import FastAPI
 from fastapi import HTTPException
 from sqlalchemy.orm import Session
 
-from fastapi_learning import crud
-from fastapi_learning import models
-from fastapi_learning import schemas
-from fastapi_learning.crud import get_user
-from fastapi_learning.crud import get_user_by_email
-from fastapi_learning.crud import get_users
-from fastapi_learning.database import ENGINE
-from fastapi_learning.database import SessionLocal
+from fastapi_learning.original_app import crud
+from fastapi_learning.original_app import models
+from fastapi_learning.original_app import schemas
+from fastapi_learning.original_app.crud import get_user
+from fastapi_learning.original_app.crud import get_user_by_email
+from fastapi_learning.original_app.crud import get_users
+from fastapi_learning.original_app.database import ENGINE
+from fastapi_learning.original_app.database import SessionLocal
 from fastapi_learning.types import T
 
 

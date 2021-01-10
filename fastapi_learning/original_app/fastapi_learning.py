@@ -22,11 +22,11 @@ from jose import JWTError
 from passlib.context import CryptContext
 from starlette.responses import StreamingResponse
 
-from fastapi_learning.database import DB_TYPE
-from fastapi_learning.database import FAKE_USERS_DB
-from fastapi_learning.schemas import Token
-from fastapi_learning.schemas import TokenData
-from fastapi_learning.schemas import UserInDB
+from fastapi_learning.original_app.database import DB_TYPE
+from fastapi_learning.original_app.database import FAKE_USERS_DB
+from fastapi_learning.original_app.schemas import Token
+from fastapi_learning.original_app.schemas import TokenData
+from fastapi_learning.original_app.schemas import UserInDB
 
 
 APP = FastAPI()

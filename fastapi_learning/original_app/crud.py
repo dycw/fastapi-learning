@@ -2,8 +2,8 @@ from typing import List
 
 from sqlalchemy.orm import Session
 
-from fastapi_learning import models
-from fastapi_learning import schemas
+from fastapi_learning.original_app import models
+from fastapi_learning.original_app import schemas
 
 
 def get_user(db: Session, user_id: int) -> models.User:

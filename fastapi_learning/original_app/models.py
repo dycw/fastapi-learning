@@ -5,7 +5,7 @@ from sqlalchemy import Integer
 from sqlalchemy import String
 from sqlalchemy.orm import relationship
 
-from fastapi_learning.database import Base
+from fastapi_learning.original_app.database import Base
 
 
 class User(Base):
