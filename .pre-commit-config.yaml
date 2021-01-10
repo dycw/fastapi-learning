@@ -80,6 +80,8 @@ repos:
     rev: v7.17.0
     hooks:
       - id: eslint
+        files: \.[jt]sx?$ # *.js, *.jsx, *.ts and *.tsx
+        types: [file]
 
   - repo: https://github.com/pre-commit/mirrors-mypy
     rev: v0.790
