@@ -1,0 +1,38 @@
+{
+  "name": "fastapi-learning",
+  "version": "1.0.0",
+  "description": "Me learning FastAPI",
+  "main": "index.js",
+  "directories": {
+    "test": "tests"
+  },
+  "dependencies": {},
+  "devDependencies": {
+    "@typescript-eslint/eslint-plugin": "^4.12.0",
+    "@typescript-eslint/parser": "^4.12.0",
+    "eslint": "^7.17.0",
+    "eslint-config-standard": "^16.0.2",
+    "eslint-plugin-import": "^2.22.1",
+    "eslint-plugin-node": "^11.1.0",
+    "eslint-plugin-promise": "^4.2.1",
+    "eslint-plugin-react": "^7.22.0",
+    "typescript": "^4.1.3"
+  },
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/dycw/fastapi-learning.git"
+  },
+  "keywords": [
+    "learning",
+    "fastapi"
+  ],
+  "author": "Derek Wan",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/dycw/fastapi-learning/issues"
+  },
+  "homepage": "https://github.com/dycw/fastapi-learning#readme"
+}
