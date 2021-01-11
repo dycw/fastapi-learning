@@ -16,7 +16,7 @@ var testObj = {
   hat: "ballcap",
   shirt: "jersey",
 };
-console.log(testObj.hat);
+console.log("testObj.hat:", testObj.hat);
 // console.log(testObj.hasOwnProperty("hat"));
 // console.log(testObj.hasOwnProperty("hattt"));
 
